@@ -1,0 +1,101 @@
+import java.util.*;
+public class CargoShip{
+  private CargoStack[] stacks;
+
+  private int maxHeight;
+
+  private double maxWeight;
+
+  private double currentWeight;
+
+  public double getMaxWeight() {
+    return maxWeight;
+  }
+
+  public double getCurrentWeight(){
+    return currentWeight;
+  }
+
+  public int getMaxHeight(){
+    return maxHeight;
+  }
+
+  public CargoShip(int numStacks, int initMaxHeight, double initMaxWeight) throws IllegalArgumentException{
+    if (numStacks <= 0 || initMaxHeight <= 0 || initMaxWeight <= 0) throw new IllegalArgumentException("Invalid constructor parameters");
+    stacks = new CargoStack[numStacks];
+    for (int i = 0; i < numStacks; i++){
+      stacks[i] = new CargoStack();
+    }
+    maxHeight = initMaxHeight;
+    maxWeight = initMaxWeight;
+    currentWeight = 0;
+  }
+
+  public void pushCargo(Cargo cargo, int stack) throws IllegalArgumentException, FullStackException, ShipOverWeightException, CargoStrengthException{
+    if (cargo == null || stack > stacks.length || stack < 1)
+    throw new IllegalArgumentException("Invalid input for pushing cargo");
+    if (stacks[stack - 1].size() == maxHeight)
+    throw new FullStackException("Operation failed! Cargo stack is at maximum height.");
+    if (cargo.getWeight() + currentWeight > maxWeight)
+    throw new ShipOverWeightException("Operation failed! Cargo would put ship overweight.");
+    if (!stacks[stack - 1].empty()){
+      if (cargo.getStrength().value > stacks[stack - 1].peek().getStrength().value)
+      throw new CargoStrengthException("Operation failed! Cargo at top of stack cannot support weight.");
+    }
+    if (stacks[stack - 1] != null){
+      stacks[stack - 1].push(cargo);
+      currentWeight += cargo.getWeight();
+    }
+  }
+
+  public Cargo popCargo(int stack) throws EmptyStackException{
+    if (stack > stacks.length || stack < 1)
+    throw new IllegalArgumentException("Invalid input for popping cargo");
+    if (stacks[stack - 1].empty())
+    throw new EmptyStackException("Operation failed! There is no cargo to remove.");
+
+    Cargo removed = stacks[stack - 1].pop();
+    currentWeight -= removed.getWeight();
+    return removed;
+  }
+
+  public Cargo peekCargo(int stack) throws EmptyStackException{
+    if (stack > stacks.length || stack < 1)
+    throw new IllegalArgumentException("Invalid input for popping cargo");
+    if (stacks[stack - 1].empty())
+    throw new EmptyStackException("Stack is already empty");
+    return stacks[stack - 1].peek();
+  }
+
+  public void findAndPrint(String name){
+    CargoStack temp = new CargoStack();
+    int count = 0;
+    int totalWeight = 0;
+    boolean found = false;
+    String table = " Stack   Depth   Weight   Strength" + "\n=======+=======+========+==========";
+    for (int i = 0; i < stacks.length; i++){
+      int counter = 0;
+      while (!stacks[i].empty()){
+        Cargo removed = stacks[i].pop();
+        temp.push(removed);
+        if (removed.getName().equals(name)){
+          String added = "\n  " + String.format("%2d%4s%4d%4s%5.0f%4s%2s%1s", (i + 1), "|", counter, "|", removed.getWeight(), "|", "  ", removed.getStrength());
+          table = table + added;
+          totalWeight += removed.getWeight();
+          count++;
+          found = true;
+        }
+        counter ++;
+      }
+      while (!temp.empty()){
+        stacks[i].push(temp.pop());
+      }
+    }
+    if (found) {
+      System.out.println(table);
+      System.out.println("\nTotal count:  " + count);
+      System.out.println("Total weight: " + totalWeight);
+    }
+    else System.out.println("Cargo " + "'" + name + "'" + " could not be found on the ship\n");
+  }
+}

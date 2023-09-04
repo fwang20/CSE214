@@ -1,0 +1,14 @@
+3
+3
+5500
+C
+bananas
+800
+F
+C
+aluminum
+2000
+S
+L
+1
+Q
